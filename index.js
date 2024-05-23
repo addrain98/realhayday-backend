@@ -18,19 +18,19 @@ wax.setLayoutPath("./views/layouts");
 
 // enable forms
 app.use(
-  express.urlencoded({
-    extended: false
-  })
+    express.urlencoded({
+        extended: false
+    })
 );
 
+const landingRoutes = require('./routes/landing.js')
+
 async function main() {
-    app.get('/', (req,res)=>{
-        res.send("It's alive!")
-    })
+    app.use('/', landingRoutes)
 }
 
 main();
 
-app.listen(3000, () => {
-  console.log("Server has started");
+app.listen(3001, () => {
+    console.log("Server has started");
 });
