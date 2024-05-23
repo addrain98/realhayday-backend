@@ -8,7 +8,7 @@ router.get('/', async (req,res)=>{
     // #2 - fetch all the products (ie, SELECT * from products)
     let products = await Product.collection().fetch();
     res.render('products/index', {
-        'products': products.toJSON() // #3 - convert collection to JSON
+        products: products.toJSON() // #3 - convert collection to JSON
     })
 })
 

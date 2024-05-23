@@ -24,9 +24,11 @@ app.use(
 );
 
 const landingRoutes = require('./routes/landing.js')
+const productRoutes = require('./routes/products.js')
 
 async function main() {
     app.use('/', landingRoutes)
+    app.use('/products', productRoutes)
 }
 
 main();
