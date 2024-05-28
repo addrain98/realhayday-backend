@@ -6,4 +6,8 @@ const Product = bookshelf.model('Product', {
 const Category = bookshelf.model('Category',{
     tableName: 'categories'
 })
-module.exports = { Product, Category };
+
+const UOM = bookshelf.model('UOM',{
+    tableName: 'uoms'
+})
+module.exports = { Product, Category, UOM };
