@@ -2,6 +2,7 @@ const forms = require('forms');
 
 const fields = forms.fields;
 const validators = forms.validators;
+const widgets = forms.widgets
 
 const bootstrapField = function (name, object) {
     if (!Array.isArray(object.widget.classes)) { object.widget.classes = []; }
@@ -23,22 +24,29 @@ const bootstrapField = function (name, object) {
     return '<div class="form-group">' + label + widget + error + '</div>';
 };
 
-const createProductForm = () => {
+const createProductForm = (uoms) => {
     return forms.create({
         name: fields.string({
-            required:true,
+            required: true,
             errorAfterField: true
         }),
-        cost:fields.string({
-            required:true,
+        cost: fields.string({
+            required: true,
             errorAfterField: true,
-            validators:[validators.integer()]
+            validators: [validators.integer()]
         }),
-        product_specs:fields.string({
-            required:true,
+        product_specs: fields.string({
+            required: true,
             errorAfterField: true
+        }),
+        uom_id: fields.string({
+            label: 'UOM',
+            required: true,
+            errorAfterField: true,
+            widget: widgets.select(),
+            choices: uoms
         })
-    })
-}
+    });
+};
 
 module.exports = {createProductForm, bootstrapField}

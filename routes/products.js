@@ -3,6 +3,7 @@ const router = express.Router();
 
 // #1 import in the Product model
 const { Product } = require('../models');
+const { UOM } = require('../models')
 const { createProductForm } = require("../forms");
 const { bootstrapField } = require("../forms");
 router.get('/', async (req, res) => {
@@ -13,14 +14,19 @@ router.get('/', async (req, res) => {
     })
 })
 router.get('/create', async function (req, res) {
-    const productForm = createProductForm()
+    //conduct a mapping
+    //for each category, return an array with 2 element( index 0 is id, index 1 is name)
+    const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
+    //create an instance of the form
+    const productForm = createProductForm(allUoms)
     res.render('products/create', {
         form: productForm.toHTML(bootstrapField)
     })
 })
 
 router.post('/create',async function(req,res) {
-    const productForm = createProductForm();
+    const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`]);
+    const productForm = createProductForm(allUoms);
     productForm.handle(req, {
         "success": async function(form){
             //extract info submitted in the form
@@ -30,6 +36,7 @@ router.post('/create',async function(req,res) {
             product.set('name', form.data.name)
             product.set('cost', form.data.cost)
             product.set('product_specs', form.data.product_specs)
+            product.set('uom_id', form.data.uom_id)
             //save 
             await product.save()
             res.redirect('/products')

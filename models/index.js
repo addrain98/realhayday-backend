@@ -1,13 +1,17 @@
 const bookshelf = require('../bookshelf')
 
 const Product = bookshelf.model('Product', {
-    tableName:'products'
+    tableName:'products',
+    uom() {
+        return this.belongsTo('UOM')
+    }
 });
-const Category = bookshelf.model('Category',{
-    tableName: 'categories'
-})
 
 const UOM = bookshelf.model('UOM',{
-    tableName: 'uoms'
+    tableName: 'uoms',
+    products() {
+        return this.hasMany('Product');
+    }
 })
-module.exports = { Product, Category, UOM };
+
+module.exports = {Product, UOM};
