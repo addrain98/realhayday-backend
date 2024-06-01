@@ -69,6 +69,7 @@ router.get('/:product_id/update', async function (req, res) {
     productForm.fields.name.value = product.get('name')
     productForm.fields.cost.value = product.get('cost')
     productForm.fields.product_specs.value = product.get('product_specs')
+    productForm.fields.uom_id.value = product.get('uom_id')
 
     res.render('products/update', {
         form: productForm.toHTML(bootstrapField)

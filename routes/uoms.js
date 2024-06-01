@@ -22,7 +22,6 @@ router.get('/create', async function (req, res) {
 
 router.post('/create', async function (req, res) {
     const uomForm = createUOMForm()
-    
     uomForm.handle(req, {
         "success": async function (form) {
             //extract info submitted in the form
