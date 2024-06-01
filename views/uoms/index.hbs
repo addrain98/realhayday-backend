@@ -1,0 +1,30 @@
+{{#extends "base"}}
+{{#block "content"}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Unit of Measurement</th>
+            <th>Unit description</th>
+            <th></th>
+        </tr>
+
+    </thead>
+    <tbody>
+        {{#each uoms}}
+        <tr>
+            <td>{{this.name}}</td>
+            <td>{{this.description}}</td>
+            <td>
+                <a href="/uoms/{{this.id}}/update" class="btn btn-primary btn-sm">Update</a>
+                <a href="/uoms/{{this.id}}/delete" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+        {{/each}}
+
+    </tbody>
+</table>
+<div>
+    <a href="/uoms/create" class="btn btn-primary mt-3" style="background-color: green">Add New Unit</a>
+</div>
+{{/block}}
+{{/extends}}

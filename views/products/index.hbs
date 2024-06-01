@@ -7,6 +7,7 @@
             <th>Cost</th>
             <th>Product Specs</th>
             <th>Unit of Measurement</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -15,7 +16,7 @@
             <td>{{this.name}}</td>
             <td>{{this.cost}}</td>
             <td>{{this.product_specs}}</td>
-            <td>{{this.uoms}}</td>
+            <td>{{this.uom.name}}</td>
             <td>
                 <a href = "/products/{{this.id}}/update"
                     class="btn btn-primary btn-sm"
@@ -28,5 +29,9 @@
         {{/each}}
     </tbody>
 </table>
+
+<div>
+    <a href="/products/create" class="btn btn-primary mt-3" style="background-color: green">Add New Product</a>
+</div>
 {{/block}}
 {{/extends}}

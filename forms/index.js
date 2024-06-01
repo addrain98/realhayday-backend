@@ -49,4 +49,19 @@ const createProductForm = (uoms) => {
     });
 };
 
-module.exports = {createProductForm, bootstrapField}
+const createUOMForm = () => {
+    return forms.create({
+        name: fields.string({
+            required: true,
+            errorAfterField: true
+        }),
+
+        description: fields.string({
+            required: true,
+            errorAfterField: true
+        })
+
+    });
+}
+
+module.exports = { createProductForm, createUOMForm, bootstrapField }
