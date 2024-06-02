@@ -1,17 +1,27 @@
-const bookshelf = require('../bookshelf')
+const bookshelf = require('../bookshelf');
 
 const Product = bookshelf.model('Product', {
-    tableName:'products',
-    uom() {
-        return this.belongsTo('UOM')
+    tableName: 'products',
+    uom: function() {
+        return this.belongsTo('UOM');
+    },
+    categories: function() {
+        return this.belongsToMany('Category', 'products_categories', 'product_id', 'category_id');
     }
 });
 
-const UOM = bookshelf.model('UOM',{
-    tableName: 'uoms',
-    products() {
-        return this.hasMany('Product');
+const Category = bookshelf.model('Category', {
+    tableName: 'categories',
+    products: function() {
+        return this.belongsToMany('Product', 'products_categories', 'category_id', 'product_id');
     }
-})
+});
 
-module.exports = {Product, UOM};
+const UOM = bookshelf.model('UOM', {
+    tableName: 'uoms',
+    products: function() {
+        return this.belongsToMany('Product');
+    }
+});
+
+module.exports = { Product, UOM, Category };

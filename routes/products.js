@@ -2,8 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // #1 import in the Product model
-const { Product } = require('../models');
-const { UOM } = require('../models')
+const { Product, UOM, Category } = require('../models');
 const { createProductForm } = require("../forms");
 const { bootstrapField } = require("../forms");
 router.get('/', async (req, res) => {
@@ -19,8 +18,10 @@ router.get('/create', async function (req, res) {
     //conduct a mapping
     //for each category, return an array with 2 element( index 0 is id, index 1 is name)
     const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
+    //Get all categories and map them into array of array, and for each inner array, element 0 is ID, element 1 is name
+    const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
     //create an instance of the form
-    const productForm = createProductForm(allUoms)
+    const productForm = createProductForm(allUoms, categories)
     res.render('products/create', {
         form: productForm.toHTML(bootstrapField)
     })
@@ -28,7 +29,8 @@ router.get('/create', async function (req, res) {
 
 router.post('/create', async function (req, res) {
     const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`]);
-    const productForm = createProductForm(allUoms);
+    const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
+    const productForm = createProductForm(allUoms, categories);
     productForm.handle(req, {
         "success": async function (form) {
             //extract info submitted in the form
@@ -39,9 +41,14 @@ router.post('/create', async function (req, res) {
             product.set('cost', form.data.cost)
             product.set('product_specs', form.data.product_specs)
             product.set('uom_id', form.data.uom_id)
-            //save 
+            //save the product first so we can get the product_id
             await product.save()
-            res.redirect('/products')
+
+            let categories = form.data.categories;
+            if (categories) {
+                product.categories().attach(categories);
+            }
+            res.redirect('/products');
         },
         "error": function (form) {
             res.render('products/create', {
