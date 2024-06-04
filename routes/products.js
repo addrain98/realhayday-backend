@@ -68,15 +68,20 @@ router.get('/:product_id/update', async function (req, res) {
     const product = await Product.where({
         'id': req.params.product_id
     }).fetch({
-        require: true
+        require: true,
+        withRelated:['categories']
     }); //add try catch later pls to catch exception
     const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
+    const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
     //create form
-    const productForm = createProductForm(allUoms);
+    const productForm = createProductForm(allUoms, categories);
     productForm.fields.name.value = product.get('name')
     productForm.fields.cost.value = product.get('cost')
     productForm.fields.product_specs.value = product.get('product_specs')
     productForm.fields.uom_id.value = product.get('uom_id')
+    //get all selected categories
+    const selectedCategories = await product.related('categories').pluck('id')
+    productForm.fields.categories.value = selectedCategories
 
     res.render('products/update', {
         form: productForm.toHTML(bootstrapField)
@@ -85,11 +90,13 @@ router.get('/:product_id/update', async function (req, res) {
 
 router.post('/:product_id/update', async function (req, res) {
     const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
-    const productForm = createProductForm(allUoms);
+    const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
+    const productForm = createProductForm(allUoms, categories);
     const product = await Product.where({
         id: req.params.product_id
     }).fetch({
-        require: true
+        require: true,
+        withRelated:['categories']
     })
     productForm.handle(req, {
         "success": async function (form) {
@@ -97,8 +104,19 @@ router.post('/:product_id/update', async function (req, res) {
             // product.set('cost', form.data.cost)
             // product.set('product_specs', form.data.product_specs) 
             //shortform
-            product.set(form.data);
+            //basically splitting categories data from product data and trabsferring them to categories
+            let {categories, ...productData} = form.data;
+            product.set(productData)
             await product.save()
+
+            //update M:N relationship with categories
+            let categoriesIds = categories.split(',');
+
+            //get and remove all existing categories
+            const existingCategoriesId = await product.related('categories').pluck('id');
+            await product.categories().detach(existingCategoriesId)
+            
+            await product.categories().attach(categoriesIds)
             res.redirect('/products')
         },
         "error": async function (form) {
