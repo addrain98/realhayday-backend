@@ -24,4 +24,8 @@ const UOM = bookshelf.model('UOM', {
     }
 });
 
-module.exports = { Product, UOM, Category };
+const User = bookshelf.model('User', {
+    tableName: 'users'
+})
+
+module.exports = { Product, UOM, Category, User };

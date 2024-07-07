@@ -51,7 +51,7 @@ router.post('/create', async function (req, res) {
             //IMPT! for flash messages to work, use it before a redirect
             req.flash('success_message', 'New product has been added');//req.session.messages.success_message = ['New product has been added']
             // res.redirect('/products');
-            res.send('Added')
+            res.redirect('/products')
         },
         "error": function (form) {
             res.render('products/create', {
