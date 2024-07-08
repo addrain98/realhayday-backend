@@ -18,7 +18,11 @@
             <td>{{this.cost}}</td>
             <td>{{this.product_specs}}</td>
             <td>{{this.uom.name}}</td>
-            <td>{{this.categories.name}}</td>
+            <td>
+                {{#each this.categories}}
+                    <span class="badge bg-info text-dark">{{this.name}}</span>
+                {{/each}}
+            </td>
             <td>
                 <a href = "/products/{{this.id}}/update"
                     class="btn btn-primary btn-sm"

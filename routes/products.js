@@ -8,7 +8,7 @@ const { bootstrapField } = require("../forms");
 router.get('/', async (req, res) => {
     // #2 - fetch all the products (ie, SELECT * from products)
     let products = await Product.collection().fetch({
-        withRelated: ['uom']
+        withRelated: ['uom', 'categories']
     });
     res.render('products/index', {
         products: products.toJSON() // #3 - convert collection to JSON
@@ -17,54 +17,77 @@ router.get('/', async (req, res) => {
 router.get('/create', async function (req, res) {
     //conduct a mapping
     //for each category, return an array with 2 element( index 0 is id, index 1 is name)
-    const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
-    //Get all categories and map them into array of array, and for each inner array, element 0 is ID, element 1 is name
-    const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
-    //create an instance of the form
-    const productForm = createProductForm(allUoms, categories)
-    res.render('products/create', {
-        form: productForm.toHTML(bootstrapField)
-    })
+    try {
+        const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
+        //Get all categories and map them into array of array, and for each inner array, element 0 is ID, element 1 is name
+        const Categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
+        //create an instance of the form
+        const productForm = createProductForm(allUoms, Categories)
+        res.render('products/create', {
+            form: productForm.toHTML(bootstrapField)
+        })
+    } catch (err) {
+        console.error('Error fetching UOMs or Categories:', err);
+        res.status(500).json({ error: 'An error occurred while fetching UOMs or Categories' });
+    }
 })
 
 router.post('/create', async function (req, res) {
-    const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`]);
-    const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
-    const productForm = createProductForm(allUoms, categories);
-    productForm.handle(req, {
-        "success": async function (form) {
-            //extract info submitted in the form
-            //info is new product
-            //to create instances of the model = create new row
-            const product = new Product();
-            product.set('name', form.data.name)
-            product.set('cost', form.data.cost)
-            product.set('product_specs', form.data.product_specs)
-            product.set('uom_id', form.data.uom_id)
-            //save the product first so we can get the product_id
-            await product.save()
+    try {
+        // Fetch all UOMs and Categories
+        const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
+        const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
 
-            let categories = form.data.categories;
-            if (categories) {
-                product.categories().attach(categories);
+        // Create the product form
+        const productForm = createProductForm(allUoms, categories);
+
+        // Handle the form submission
+        productForm.handle(req, {
+            "success": async function (form) {
+                try {
+                    // Create a new product instance
+                    const product = new Product();
+                    product.set('name', form.data.name);
+                    product.set('cost', form.data.cost);
+                    product.set('product_specs', form.data.product_specs);
+                    product.set('uom_id', form.data.uom_id);
+
+
+                    // Save the product to get the product_id
+                    await product.save();
+
+                    // Attach categories to the product
+                    let categories = form.data.categories
+                    // the tags will be in comma delimited form
+                    // so for example if the user selects ID 3, 5 and 6
+                    // then form.data.tags will be "3,5,6"
+                    if (categories) {
+                        await product.categories().attach(categories.split(','));
+                    }
+                    // Set flash message and redirect
+                    req.flash('success_messages', 'New product has been added');
+                    res.redirect('/products');
+                } catch (err) {
+                    console.error('Error saving product:', err);
+                    res.status(500).json({ error: 'An error occurred while saving the product' });
+                }
+            },
+            "error": function (form) {
+                res.render('products/create', {
+                    form: form.toHTML(bootstrapField)
+                });
+            },
+            "empty": function (form) {
+                res.render('products/create', {
+                    form: form.toHTML(bootstrapField)
+                });
             }
-            //IMPT! for flash messages to work, use it before a redirect
-            req.flash('success_message', 'New product has been added');//req.session.messages.success_message = ['New product has been added']
-            // res.redirect('/products');
-            res.redirect('/products')
-        },
-        "error": function (form) {
-            res.render('products/create', {
-                form: form.toHTML(bootstrapField)
-            })
-        },
-        "empty": function (form) {
-            res.render('products/create', {
-                form: form.toHTML(bootstrapField)
-            })
-        }
-    })
-})
+        });
+    } catch (err) {
+        console.error('Error fetching UOMs or Categories:', err);
+        res.status(500).json({ error: 'An error occurred while fetching UOMs or Categories' });
+    }
+});
 
 router.get('/:product_id/update', async function (req, res) {
     //get item
@@ -72,7 +95,7 @@ router.get('/:product_id/update', async function (req, res) {
         'id': req.params.product_id
     }).fetch({
         require: true,
-        withRelated:['categories']
+        withRelated: ['categories']
     }); //add try catch later pls to catch exception
     const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
     const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
@@ -99,7 +122,7 @@ router.post('/:product_id/update', async function (req, res) {
         id: req.params.product_id
     }).fetch({
         require: true,
-        withRelated:['categories']
+        withRelated: ['categories']
     })
     productForm.handle(req, {
         "success": async function (form) {
@@ -108,7 +131,7 @@ router.post('/:product_id/update', async function (req, res) {
             // product.set('product_specs', form.data.product_specs) 
             //shortform
             //basically splitting categories data from product data and trabsferring them to categories
-            let {categories, ...productData} = form.data;
+            let { categories, ...productData } = form.data;
             product.set(productData)
             await product.save()
 
@@ -118,7 +141,7 @@ router.post('/:product_id/update', async function (req, res) {
             //get and remove all existing categories
             const existingCategoriesId = await product.related('categories').pluck('id');
             await product.categories().detach(existingCategoriesId)
-            
+
             await product.categories().attach(categoriesIds)
             res.redirect('/products')
         },
