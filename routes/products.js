@@ -184,6 +184,7 @@ router.post('/:product_id/delete', async function (req, res) {
             require: true
         });
         await product.destroy();
+        req.flash("success_messages", "Product has been deleted.")
         res.redirect("/products");
     } catch (err) {
         console.error(err);

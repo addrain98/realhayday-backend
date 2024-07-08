@@ -11,6 +11,12 @@ const FileStore = require('session-file-store')(session);
 // create an instance of express app
 let app = express();
 
+if (!process.env.SESSION_SECRET) {
+    console.error('SESSION_SECRET is not defined in the environment variables');
+    process.exit(1); // Exit the application if SESSION_SECRET is missing
+}
+
+
 // set the view engine
 app.set("view engine", "hbs");
 
@@ -59,7 +65,7 @@ async function main() {
 }
 
 main();
-
-app.listen(3001, () => {
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
     console.log("Server has started");
 });
