@@ -77,15 +77,30 @@ const createRegistrationForm = () => {
             required: true,
             errorAfterField: true
         }),
-        'email': fields.string({
+        email: fields.email({
             required:true,
             errorAfterField: true
         }),
-        'password': fields.password({
+        password: fields.password({
             required: true,
             errorAfterField: true
         }),
-        'confirm_password': fields.password({
+        confirm_password: fields.password({
+            required: true,
+            errorAfterField: true,
+            validators:[validators.matchField('password')]
+        })
+        
+    })
+}
+
+const createLoginForm = () => {
+    return forms.create({
+        email: fields.email({
+            required:true,
+            errorAfterField: true
+        }),
+        password: fields.password({
             required: true,
             errorAfterField: true
         })
@@ -93,4 +108,4 @@ const createRegistrationForm = () => {
     })
 }
 
-module.exports = { createProductForm, createUOMForm, bootstrapField, createRegistrationForm }
+module.exports = { createProductForm, createUOMForm, bootstrapField, createRegistrationForm, createLoginForm }
