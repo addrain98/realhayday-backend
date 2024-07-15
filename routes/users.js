@@ -2,6 +2,7 @@ const express = require('express');
 const bycrypt = require('bcrypt')
 const { User } = require('../models')
 const { createRegistrationForm, bootstrapField, createLoginForm } = require('../forms');
+const { checkifAuthenticated } = require('../middlewares');
 const router = express.Router();
 
 router.get('/signup', function (req, res) {
@@ -59,7 +60,7 @@ router.post('/login', function (req, res) {
                 });
 
                 if (user) {
-                    if(await bycrypt.compare(form.data.password, user.get("password"))) {
+                    if (await bycrypt.compare(form.data.password, user.get("password"))) {
                         req.session.userId = user.get('id');
                         res.redirect('/users/profile')
                     }
@@ -75,16 +76,30 @@ router.post('/login', function (req, res) {
             }
         },
 
-        "empty" : function (form) {
+        "empty": function (form) {
             res.render('users/login', {
                 form: form.toHTML(bootstrapField)
             })
         },
-        "error" : function (form) {
+        "error": function (form) {
             res.render('users/login', {
                 form: form.toHTML(bootstrapField)
             })
         }
     })
 })
+
+router.get('/profile', [checkifAuthenticated], async function (req, res) {
+    res.render('users/profile', {
+        user: req.session.user
+    });
+});
+
+router.get('/logout', function (req, res) {
+    req.session.userId = null;
+    req.session.user = null; // Also clear the user session data
+    req.flash("success_messages", "You have logged out successfully. See you again!");
+    res.redirect('/users/login');
+});
+
 module.exports = router;
