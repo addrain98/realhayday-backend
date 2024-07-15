@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/signup', function (req, res) {
     const form = createRegistrationForm();
-    res.render('users/create', {
+    res.render('users/signup', {
         form: form.toHTML(bootstrapField)
     })
 })
@@ -52,14 +52,14 @@ router.post('/login', function (req, res) {
     form.handle(req, {
         "success": async function (form) {
             try {
-                const user = User.where({
+                const user = await User.where({
                     email: form.data.email
                 }).fetch({
                     require: false
                 });
 
                 if (user) {
-                    if(await bycrypt.compare(user.get("password"), form.data.password)) {
+                    if(await bycrypt.compare(form.data.password, user.get("password"))) {
                         req.session.userId = user.get('id');
                         res.redirect('/users/profile')
                     }

@@ -3,6 +3,8 @@ const hbs = require("hbs");
 const wax = require("wax-on");
 require("dotenv").config();
 
+
+
 //import all dependencies for sessions
 const session = require('express-session');
 const flash = require('connect-flash');
@@ -67,7 +69,16 @@ async function main() {
 }
 
 main();
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+
+process.once("SIGUSR2", () => 
+    server.close(err => {
+        if (err) {
+            console.error("Error while closing server:", err);
+        }
+        process.kill(process.pid, "SIGUSR2");
+    })
+);
+
+app.listen(5000, () => {
     console.log("Server has started");
 });
