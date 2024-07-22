@@ -52,7 +52,11 @@ const createProductForm = (uoms=[], categories=[]) => {
             errorAfterField: true,
             widget: widgets.multipleSelect(),
             choices: categories
+        }),
+        image_url: fields.string({
+            widget: widgets.hidden()
         })
+
     });
 };
 

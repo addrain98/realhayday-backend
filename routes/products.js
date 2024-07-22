@@ -5,6 +5,7 @@ const router = express.Router();
 const { Product, UOM, Category } = require('../models');
 const { createProductForm } = require("../forms");
 const { bootstrapField } = require("../forms");
+const { checkifAuthenticated } = require('../middlewares');
 router.get('/', async (req, res) => {
     // #2 - fetch all the products (ie, SELECT * from products)
     let products = await Product.collection().fetch({
@@ -14,7 +15,7 @@ router.get('/', async (req, res) => {
         products: products.toJSON() // #3 - convert collection to JSON
     })
 })
-router.get('/create', async function (req, res) {
+router.get('/create', [checkifAuthenticated], async function (req, res) {
     //conduct a mapping
     //for each category, return an array with 2 element( index 0 is id, index 1 is name)
     try {
@@ -24,7 +25,10 @@ router.get('/create', async function (req, res) {
         //create an instance of the form
         const productForm = createProductForm(allUoms, Categories)
         res.render('products/create', {
-            form: productForm.toHTML(bootstrapField)
+            form: productForm.toHTML(bootstrapField),
+            cloudinaryName: process.env.CLOUDINARY_NAME,
+            cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+            cloudinaryPreset: process.env.CLOUDINARY_UPLOAD_PRESET
         })
     } catch (err) {
         console.error('Error fetching UOMs or Categories:', err);
@@ -51,6 +55,7 @@ router.post('/create', async function (req, res) {
                     product.set('cost', form.data.cost);
                     product.set('product_specs', form.data.product_specs);
                     product.set('uom_id', form.data.uom_id);
+                    product.set('image_url', form.data.image_url);
 
 
                     // Save the product to get the product_id
@@ -74,12 +79,18 @@ router.post('/create', async function (req, res) {
             },
             "error": function (form) {
                 res.render('products/create', {
-                    form: form.toHTML(bootstrapField)
+                    form: form.toHTML(bootstrapField),
+                    cloudinaryName: process.env.CLOUDINARY_NAME,
+                    cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+                    cloudinaryPreset: process.env.CLOUDINARY_UPLOAD_PRESET
                 });
             },
             "empty": function (form) {
                 res.render('products/create', {
-                    form: form.toHTML(bootstrapField)
+                    form: form.toHTML(bootstrapField),
+                    cloudinaryName: process.env.CLOUDINARY_NAME,
+                    cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+                    cloudinaryPreset: process.env.CLOUDINARY_UPLOAD_PRESET
                 });
             }
         });
@@ -89,7 +100,7 @@ router.post('/create', async function (req, res) {
     }
 });
 
-router.get('/:product_id/update', async function (req, res) {
+router.get('/:product_id/update', [checkifAuthenticated], async function (req, res) {
     //get item
     const product = await Product.where({
         'id': req.params.product_id
@@ -105,13 +116,19 @@ router.get('/:product_id/update', async function (req, res) {
     productForm.fields.cost.value = product.get('cost')
     productForm.fields.product_specs.value = product.get('product_specs')
     productForm.fields.uom_id.value = product.get('uom_id')
+    productForm.fields.image_url.value = product.get('image_url')
+
     //get all selected categories
     const selectedCategories = await product.related('categories').pluck('id')
     productForm.fields.categories.value = selectedCategories
 
     res.render('products/update', {
-        form: productForm.toHTML(bootstrapField)
-    })
+        form: productForm.toHTML(bootstrapField),
+        product: product.toJSON(),
+        cloudinaryName: process.env.CLOUDINARY_NAME,
+        cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+        cloudinaryPreset: process.env.CLOUDINARY_UPLOAD_PRESET
+      });
 })
 
 router.post('/:product_id/update', async function (req, res) {
@@ -147,18 +164,24 @@ router.post('/:product_id/update', async function (req, res) {
         },
         "error": async function (form) {
             res.render('products/update', {
-                form: form.toHTML(bootstrapField)
+                form: form.toHTML(bootstrapField),
+                cloudinaryName: process.env.CLOUDINARY_NAME,
+                cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+                cloudinaryPreset: process.env.CLOUDINARY_UPLOAD_PRESET
             })
         },
         "empty": async function (form) {
             res.render('products/update', {
-                form: form.toHTML(bootstrapField)
+                form: form.toHTML(bootstrapField),
+                cloudinaryName: process.env.CLOUDINARY_NAME,
+                cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+                cloudinaryPreset: process.env.CLOUDINARY_UPLOAD_PRESET
             })
         }
     })
 })
 
-router.get('/:product_id/delete', async function (req, res) {
+router.get('/:product_id/delete', [checkifAuthenticated], async function (req, res) {
     try {
         // Get item
         const product = await Product.where({

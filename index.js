@@ -2,7 +2,8 @@ const express = require("express");
 const hbs = require("hbs");
 const wax = require("wax-on");
 require("dotenv").config();
-
+const csurf = require('csurf');
+ 
 if (!process.env.SESSION_SECRET) {
     console.error('SESSION_SECRET is not defined in the environment variables');
     process.exit(1); // Exit the application if SESSION_SECRET is missing
@@ -58,17 +59,35 @@ app.use(function (req, res, next) {
 
     next();
 });
+//enable csurf
+app.use(csurf());
+
+app.use(function (req,res,next) {
+    res.locals.csrfToken = req.csrfToken();
+    next();
+})
+//write error handler for a middleware as its next middleware
+app.use(function(err, req,res,next) {
+    if (err && err.code == "EBADCSRFTOKEN"){
+        req.flash("error_messages", "The form has expired")
+        res.redirect('back')
+    } else {
+        next()
+    }
+})
 
 const landingRoutes = require('./routes/landing.js');
 const productRoutes = require('./routes/products.js');
 const uomRoutes = require('./routes/uoms.js');
 const userRoutes = require('./routes/users.js');
+const cloudinaryRoutes = require('./routes/cloudinary.js')
 
 async function main() {
     app.use('/', landingRoutes);
     app.use('/products', productRoutes);
     app.use('/uoms', uomRoutes);
     app.use('/users', userRoutes);
+    app.use('/cloudinary', cloudinaryRoutes)
 }
 
 main();
