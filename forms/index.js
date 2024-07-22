@@ -112,4 +112,13 @@ const createLoginForm = () => {
     })
 }
 
-module.exports = { createProductForm, createUOMForm, bootstrapField, createRegistrationForm, createLoginForm }
+const createSearchForm = (categories=[], uoms=[]) => {
+    return forms.create({
+        'name': fields.string({
+            required: false,
+            errorAfterField: true
+        })
+    })
+}
+
+module.exports = { createProductForm, createUOMForm, bootstrapField, createRegistrationForm, createLoginForm, createSearchForm}

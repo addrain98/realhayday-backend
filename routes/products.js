@@ -3,16 +3,19 @@ const router = express.Router();
 
 // #1 import in the Product model
 const { Product, UOM, Category } = require('../models');
-const { createProductForm } = require("../forms");
-const { bootstrapField } = require("../forms");
+const { createProductForm, bootstrapField, createSearchForm } = require("../forms");
 const { checkifAuthenticated } = require('../middlewares');
 router.get('/', async (req, res) => {
-    // #2 - fetch all the products (ie, SELECT * from products)
+    const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
+    const Categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
+    const searchForm = createSearchForm(Categories, allUoms);
+    // fetch all the products (ie, SELECT * from products)
     let products = await Product.collection().fetch({
         withRelated: ['uom', 'categories']
     });
     res.render('products/index', {
-        products: products.toJSON() // #3 - convert collection to JSON
+        products: products.toJSON(), // #3 - convert collection to JSON
+        form:  searchForm.toHTML(bootstrapField)
     })
 })
 router.get('/create', [checkifAuthenticated], async function (req, res) {
@@ -128,7 +131,7 @@ router.get('/:product_id/update', [checkifAuthenticated], async function (req, r
         cloudinaryName: process.env.CLOUDINARY_NAME,
         cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
         cloudinaryPreset: process.env.CLOUDINARY_UPLOAD_PRESET
-      });
+    });
 })
 
 router.post('/:product_id/update', async function (req, res) {
