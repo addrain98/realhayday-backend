@@ -104,14 +104,7 @@ router.post('/create', async function (req, res) {
             "success": async function (form) {
                 try {
                     // Create a new product instance
-                    const product = new Product();
-                    product.set('name', form.data.name);
-                    product.set('cost', form.data.cost);
-                    product.set('product_specs', form.data.product_specs);
-                    product.set('uom_id', form.data.uom_id);
-                    product.set('image_url', form.data.image_url);
-
-
+                    const product = await createProduct(form.data)
                     // Save the product to get the product_id
                     await product.save();
 
