@@ -7,15 +7,66 @@ const { createProductForm, bootstrapField, createSearchForm } = require("../form
 const { checkifAuthenticated } = require('../middlewares');
 router.get('/', async (req, res) => {
     const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
+    allUoms.unshift([0, '--------'])
     const Categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
     const searchForm = createSearchForm(Categories, allUoms);
-    // fetch all the products (ie, SELECT * from products)
-    let products = await Product.collection().fetch({
-        withRelated: ['uom', 'categories']
-    });
-    res.render('products/index', {
-        products: products.toJSON(), // #3 - convert collection to JSON
-        form:  searchForm.toHTML(bootstrapField)
+
+    searchForm.handle(req, {
+        "success": async function (form) {
+            // fetch all the products (ie, SELECT * from products)
+            // let products = await Product.collection()
+            //     .where('name', 'like', `%${form.data.name}%`)
+            //     .fetch({
+            //         withRelated: ['uom', 'categories']
+            //     });
+            //we need an always tru query to select all parameters
+            //eqv. SELECT * FROM products WHERE 1
+            // this is known as query builder
+            const q = Product.collection();
+
+            if (form.data.name) {
+                q.where('name', 'like', `%${form.data.name}%`)
+            }
+            if (form.data.price_range) {
+                q.where('cost', '<=', form.data.price_range); // Ensure the correct field name is used
+            }
+            if (form.data.uom_id && form.data.uom_id != "0") {
+                q.where('uom_id', '=', parseInt(form.data.uom_id))
+            }
+
+            if (form.data.categories) {
+                q.query('join', 'products_categories', 'products.id', 'product_id')
+                .where('category_id', 'in', form.data.categories.split(','))
+            }
+
+            // Fetch products based on the query
+            let products = await q.fetch({
+                withRelated: ['uom', 'categories']
+            });
+            res.render('products/index', {
+                products: products.toJSON(), // #3 - convert collection to JSON
+                form: form.toHTML(bootstrapField)
+            })
+        },
+        "error": async function (form) {
+            let products = await Product.collection().fetch({
+                withRelated: ['uom', 'categories']
+            });
+            res.render('products/index', {
+                products: products.toJSON(), // #3 - convert collection to JSON
+                form: searchForm.toHTML(bootstrapField)
+            })
+
+        },
+        "empty": async function (form) {
+            let products = await Product.collection().fetch({
+                withRelated: ['uom', 'categories']
+            });
+            res.render('products/index', {
+                products: products.toJSON(), // #3 - convert collection to JSON
+                form: searchForm.toHTML(bootstrapField)
+            })
+        }
     })
 })
 router.get('/create', [checkifAuthenticated], async function (req, res) {

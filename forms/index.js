@@ -24,6 +24,17 @@ const bootstrapField = function (name, object) {
     const widget = object.widget.toHTML(name, object);
     return '<div class="form-group">' + label + widget + error + '</div>';
 };
+widgets.rangeWidget = function(options) {
+    var opt = Object.assign({}, options);
+    return {
+        toHTML: function(name, field) {
+            return `
+                <input type="range" name="${name}" id="${field.id}" value="${field.value || opt.min}" min="${opt.min}" max="${opt.max}" step="${opt.step}" class="form-control" oninput="document.getElementById('${field.id}-label').innerHTML = this.value" />
+                <label id="${field.id}-label">${field.value || opt.min}</label>
+            `;
+        }
+    };
+};
 
 const createProductForm = (uoms=[], categories=[]) => {
     return forms.create({
@@ -114,9 +125,28 @@ const createLoginForm = () => {
 
 const createSearchForm = (categories=[], uoms=[]) => {
     return forms.create({
-        'name': fields.string({
+       'name': fields.string({
             required: false,
             errorAfterField: true
+        }),
+        'price_range': fields.number({
+            required: false,
+            widget: widgets.rangeWidget({ min: 0, max: 10000, step: 100 }),
+            validators: [validators.integer()],
+            label: 'Price Range'
+        }),
+        uom_id: fields.string({
+            label: 'UOM',
+            required: true,
+            errorAfterField: true,
+            widget: widgets.select(),
+            choices: uoms
+        }),
+        categories: fields.string({
+            required: true,
+            errorAfterField: true,
+            widget: widgets.multipleSelect(),
+            choices: categories
         })
     })
 }
