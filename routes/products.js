@@ -5,10 +5,12 @@ const router = express.Router();
 const { Product, UOM, Category } = require('../models');
 const { createProductForm, bootstrapField, createSearchForm } = require("../forms");
 const { checkifAuthenticated } = require('../middlewares');
+const { getAllUoms, getAllCategories, getProductById, createProduct } = require('../dal/products')
+
 router.get('/', async (req, res) => {
-    const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
+    const allUoms = await getAllUoms()
     allUoms.unshift([0, '--------'])
-    const Categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
+    const Categories = await getAllCategories()
     const searchForm = createSearchForm(Categories, allUoms);
 
     searchForm.handle(req, {
@@ -36,11 +38,11 @@ router.get('/', async (req, res) => {
 
             if (form.data.categories) {
                 q.query('join', 'products_categories', 'products.id', 'product_id')
-                .where('category_id', 'in', form.data.categories.split(','))
+                    .where('category_id', 'in', form.data.categories.split(','))
             }
 
             // Fetch products based on the query
-            let products = await q.fetch({
+            let products = await Product.collection().fetch({
                 withRelated: ['uom', 'categories']
             });
             res.render('products/index', {
@@ -73,10 +75,8 @@ router.get('/create', [checkifAuthenticated], async function (req, res) {
     //conduct a mapping
     //for each category, return an array with 2 element( index 0 is id, index 1 is name)
     try {
-        const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
-        //Get all categories and map them into array of array, and for each inner array, element 0 is ID, element 1 is name
-        const Categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
-        //create an instance of the form
+        const allUoms = await getAllUoms()
+        const Categories = await getAllCategories()
         const productForm = createProductForm(allUoms, Categories)
         res.render('products/create', {
             form: productForm.toHTML(bootstrapField),
@@ -93,11 +93,11 @@ router.get('/create', [checkifAuthenticated], async function (req, res) {
 router.post('/create', async function (req, res) {
     try {
         // Fetch all UOMs and Categories
-        const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
-        const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
+        const allUoms = await getAllUoms()
+        const Categories = await getAllCategories()
 
         // Create the product form
-        const productForm = createProductForm(allUoms, categories);
+        const productForm = createProductForm(allUoms, Categories);
 
         // Handle the form submission
         productForm.handle(req, {
@@ -156,16 +156,16 @@ router.post('/create', async function (req, res) {
 
 router.get('/:product_id/update', [checkifAuthenticated], async function (req, res) {
     //get item
-    const product = await Product.where({
-        'id': req.params.product_id
-    }).fetch({
-        require: true,
-        withRelated: ['categories']
-    }); //add try catch later pls to catch exception
-    const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
-    const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
+    const product = await getProductById(req.params.product_id)
+    if (!product) {
+        req.flash('error_messages', "Product does not exist")
+        res.redirect('/')
+        return
+    }
+    const allUoms = await getAllUoms()
+    const Categories = await getAllCategories()
     //create form
-    const productForm = createProductForm(allUoms, categories);
+    const productForm = createProductForm(allUoms, Categories);
     productForm.fields.name.value = product.get('name')
     productForm.fields.cost.value = product.get('cost')
     productForm.fields.product_specs.value = product.get('product_specs')
@@ -186,15 +186,15 @@ router.get('/:product_id/update', [checkifAuthenticated], async function (req, r
 })
 
 router.post('/:product_id/update', async function (req, res) {
-    const allUoms = await UOM.fetchAll().map(uom => [uom.get('id'), `${uom.get('name')}, ${uom.get('description')}`])
-    const categories = await Category.fetchAll().map(category => [category.get('id'), category.get('name')]);
-    const productForm = createProductForm(allUoms, categories);
-    const product = await Product.where({
-        id: req.params.product_id
-    }).fetch({
-        require: true,
-        withRelated: ['categories']
-    })
+    const product = await getProductById(req.params.product_id)
+    if (!product) {
+        req.flash('error_messages', "Product does not exist")
+        res.redirect('/')
+        return
+    }
+    const allUoms = await getAllUoms()
+    const Categories = await getAllCategories()
+    const productForm = createProductForm(allUoms, Categories);
     productForm.handle(req, {
         "success": async function (form) {
             // product.set('name', form.data.name)
@@ -238,11 +238,12 @@ router.post('/:product_id/update', async function (req, res) {
 router.get('/:product_id/delete', [checkifAuthenticated], async function (req, res) {
     try {
         // Get item
-        const product = await Product.where({
-            'id': req.params.product_id
-        }).fetch({
-            require: true
-        });
+        const product = await getProductById(req.params.product_id)
+        if (!product) {
+            req.flash('error_messages', "Product does not exist")
+            res.redirect('/')
+            return
+        }
 
         res.render('products/delete', {
             product: product.toJSON()
@@ -255,11 +256,12 @@ router.get('/:product_id/delete', [checkifAuthenticated], async function (req, r
 
 router.post('/:product_id/delete', async function (req, res) {
     try {
-        const product = await Product.where({
-            'id': req.params.product_id
-        }).fetch({
-            require: true
-        });
+        const product = await getProductById(req.params.product_id)
+        if (!product) {
+            req.flash('error_messages', "Product does not exist")
+            res.redirect('/')
+            return
+        }
         await product.destroy();
         req.flash("success_messages", "Product has been deleted.")
         res.redirect("/products");

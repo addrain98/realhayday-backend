@@ -1,0 +1,45 @@
+const { Category, UOM, Product } = require("../models");
+
+async function getAllCategories() {
+    const allCategories = await Category.fetchAll()
+        .map(category => [category.get('id'), category.get('name')]);
+    return allCategories;
+}
+
+async function getAllUoms() {
+    const allUoms = await UOM.fetchAll()
+        .map(uom => [uom.get('id'), uom.get('name')]);
+    return allUoms;
+}
+
+async function getProductById(productId) {
+    const product = await Product.where({
+        'id': productId
+    }).fetch({
+        withRelated: ['uom', 'categories'],
+        require: false
+    });
+
+    return product;
+
+}
+
+async function createProduct(productData) {
+    const product = new Product();
+    product.set('name', form.data.name);
+    product.set('cost', form.data.cost);
+    product.set('product_specs', form.data.product_specs);
+    product.set('uom_id', form.data.uom_id);
+    product.set('image_url', form.data.image_url);
+
+    // save the product first so we use its product
+    await product.save();
+    return product;
+}
+
+module.exports = {
+    getAllUoms,
+    getAllCategories,
+    getProductById,
+    createProduct
+}
