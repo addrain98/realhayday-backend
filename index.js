@@ -81,13 +81,15 @@ const productRoutes = require('./routes/products.js');
 const uomRoutes = require('./routes/uoms.js');
 const userRoutes = require('./routes/users.js');
 const cloudinaryRoutes = require('./routes/cloudinary.js')
+const cartRoutes = require('./routes/shoppingCart.js')
 
 async function main() {
     app.use('/', landingRoutes);
     app.use('/products', productRoutes);
     app.use('/uoms', uomRoutes);
     app.use('/users', userRoutes);
-    app.use('/cloudinary', cloudinaryRoutes)
+    app.use('/cloudinary', cloudinaryRoutes);
+    app.use('/cart', cartRoutes);
 }
 
 main();

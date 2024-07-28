@@ -1,5 +1,52 @@
 {{#extends "base"}}
 {{#block "content"}}
 <h1>Welcome to Just Solutions, your one-stop shop for all your gardening supply needs</h1>
+
+<h1>Search for Product</h1>
+<form method = "GET">
+    {{{form}}}
+    <input type="submit" class="btn btn-primary mt-3"/>
+</form>
+<h1>        </h1>
+<h2>Products</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Cost</th>
+            <th>Product Specs</th>
+            <th>Unit of Measurement</th>
+            <th>Categories</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each products}}
+        <tr>
+            <td>{{this.name}}</td>
+            <td>{{this.cost}}</td>
+            <td>{{this.product_specs}}</td>
+            <td>{{this.uom.name}}</td>
+            <td>
+                {{#each this.categories}}
+                    <span class="badge bg-info text-dark">{{this.name}}</span>
+                {{/each}}
+            </td>
+            <td>
+                <a href = "/products/{{this.id}}/update"
+                    class="btn btn-primary btn-sm"
+                >Update</a> 
+                <a href = "/products/{{this.id}}/delete"
+                    class="btn btn-danger btn-sm"
+                >Delete</a>
+            </td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+
+<div>
+    <a href="/products/create" class="btn btn-primary mt-3" style="background-color: green">Add New Product</a>
+</div>
 {{/block}}
 {{/extends}}
