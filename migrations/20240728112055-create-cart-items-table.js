@@ -1,7 +1,5 @@
 'use strict';
 
-const { integer } = require("forms/lib/validators");
-
 var dbm;
 var type;
 var seed;
@@ -10,6 +8,7 @@ var seed;
   * We receive the dbmigrate dependency from dbmigrate initially.
   * This enables us to not have to rely on NODE_PATH.
   */
+
 exports.setup = function (options, seedLink) {
   dbm = options.dbmigrate;
   type = dbm.dataType;
@@ -24,8 +23,8 @@ exports.up = function (db) {
       primaryKey: true,
       autoIncrement: true
     },
-    quanity: {
-      tye: 'int',
+    quantity: {  
+      type: 'int',  
       unsigned: true
     },
     user_id: {
@@ -35,28 +34,28 @@ exports.up = function (db) {
       foreignKey: {
         name: 'cart_items_user_fk',
         table: 'users',
-        maping: 'id',
+        mapping: 'id',  // Fixed typo from 'maping' to 'mapping'
         rules: {
           onDelete: 'CASCADE',
-          onUpdate: "RESTRICT"
+          onUpdate: 'RESTRICT'
         }
       }
     },
     product_id: {
       type: 'int',
-      notNUll: true,
+      unsigned: true, 
+      notNull: true,  
       foreignKey: {
         name: 'cart_items_product_fk',
         table: 'products',
-        maping: 'id',
+        mapping: 'id',  
         rules: {
           onDelete: 'CASCADE',
-          onUpdate: "RESTRICT"
+          onUpdate: 'RESTRICT'
         }
       }
     }
-  }
-  )
+  });
 };
 
 exports.down = function (db) {

@@ -26,11 +26,11 @@ async function getProductById(productId) {
 
 async function createProduct(productData) {
     const product = new Product();
-    product.set('name', form.data.name);
-    product.set('cost', form.data.cost);
-    product.set('product_specs', form.data.product_specs);
-    product.set('uom_id', form.data.uom_id);
-    product.set('image_url', form.data.image_url);
+    product.set('name', productData.name);
+    product.set('cost', productData.cost);
+    product.set('product_specs', productData.product_specs);
+    product.set('uom_id', productData.uom_id);
+    product.set('image_url', productData.image_url);
 
     // save the product first so we use its product
     await product.save();
