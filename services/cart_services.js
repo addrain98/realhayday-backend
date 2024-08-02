@@ -7,7 +7,14 @@ async function addToCart(userId, productId, quantity) {
     //3. discount code or dscount coupon
     //4. retargeting, sending user reminder email
     try {
-        await cartDataLayer.createCartItem(userId, productId, quantity)
+        const cartItem = await cartDataLayer.getCartItemByUserAndProduct(userId, productId);
+        if (!cartItem) {
+            // if the user already have, get the existing item and increases its quantity by 1
+            await cartDataLayer.createCartItem(userId, productId, quantity);
+        } else {
+            console.log(`Updating existing cart item for user ${userId}, product ${productId}, by quantity ${quantity}`);
+            await cartDataLayer.updateQuantity(userId, productId, 1);
+        }
     } catch (error) {
         console.error('Error adding to cart:', error);
         throw error; // Rethrow the error to be handled by the caller
@@ -18,7 +25,6 @@ async function getCart(userId) {
         if (!userId) {
             throw new Error('User ID is required to fetch cart items.');
         }
-        console.log(`Fetching cart for userId=${userId}`);
         return await cartDataLayer.getCart({ userId });
     } catch (error) {
         console.error('Error fetching cart:', error);

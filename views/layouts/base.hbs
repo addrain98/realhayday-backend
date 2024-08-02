@@ -15,16 +15,43 @@
 
 <body>
     <div class="container">
+        <nav class="navbar navbar-expand-sm bg-light">
+
+            <div class="container-fluid">
+                <!-- Links -->
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about-us">About Us</a>
+                    </li>
+                </ul>
+                <div>
+                    {{#if username}}
+                    Hi, {{username}}
+                    <a href="/users/logout" class="btn btn-danger btn-sm">Log Out</a>
+                    {{else}}
+                    <a href="/users/login" class="btn btn-primary btn-sm">Login</a>
+                    {{/if}}
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/cart">Cart</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
         {{#if success_messages}}
-            {{#each success_messages}}
-                <div class="alert alert-success">{{this}}</div>
-            {{/each}}
+        {{#each success_messages}}
+        <div class="alert alert-success">{{this}}</div>
+        {{/each}}
         {{/if}}
 
         {{#if error_messages}}
-            {{#each error_messages}}
-                <div class="alert alert-danger">{{this}}</div>
-            {{/each}}
+        {{#each error_messages}}
+        <div class="alert alert-danger">{{this}}</div>
+        {{/each}}
         {{/if}}
 
         {{#block "content"}}{{/block}}

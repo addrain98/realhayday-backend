@@ -1,3 +1,4 @@
+const { get } = require('express/lib/response');
 const { CartItem } = require('../models');
 
 /**
@@ -79,4 +80,19 @@ async function createCartItem(userId, productId, quantity) {
     }
 }
 
-module.exports = { getCart, getCartItemByUserAndProduct, createCartItem };
+async function updateQuantity(userId, productId, amount) {
+    try {
+        const cartItem = await getCartItemByUserAndProduct(userId, productId);
+        const currentQuantity = cartItem.get('quantity');
+        const newQuantity = currentQuantity + amount;
+        if (!cartItem) {
+            throw new Error('Cart item not found');
+        }
+        cartItem.set('quantity', newQuantity);
+        await cartItem.save();
+    } catch (error) {
+        console.error('Error updating quantity:', error);
+        throw error;
+    }
+}
+module.exports = { getCart, getCartItemByUserAndProduct, createCartItem, updateQuantity };

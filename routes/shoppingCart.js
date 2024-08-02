@@ -12,9 +12,9 @@ router.get('/', [checkifAuthenticated], async function (req, res) {
     })
 })
 
-router.get('/:product_id/add', async function (req, res) {
+router.get('/:product_id/add',[checkifAuthenticated], async function (req, res) {
     await cartServices.addToCart(req.session.userId, req.params.product_id, 1);
-    req.flash('success_messages', "Addd to shopping cart");
+    req.flash('success_messages', "Add to shopping cart");
     res.redirect('/cart');
 })
 

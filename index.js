@@ -59,6 +59,13 @@ app.use(function (req, res, next) {
 
     next();
 });
+
+app.use(function(req,res, next){
+    if(req.session.username) {
+        res.locals.username = req.session.username;
+    }
+    next();
+});
 //enable csurf
 app.use(csurf());
 

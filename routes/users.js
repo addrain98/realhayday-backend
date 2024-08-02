@@ -62,6 +62,7 @@ router.post('/login', function (req, res) {
                 if (user) {
                     if (await bycrypt.compare(form.data.password, user.get("password"))) {
                         req.session.userId = user.get('id');
+                        req.session.username = user.get('name');
                         res.redirect('/users/profile')
                     }
                 } else {
