@@ -32,4 +32,12 @@ async function getCart(userId) {
     }
 }
 
-module.exports = { addToCart, getCart }
+async function removeFromCart(userId, productId){
+    return await cartDataLayer.removeFromCart(userId, productId)
+}
+
+async function updateCartQuantity(userId, productId, quantity) {
+    return await cartDataLayer.updateQuantity(userId, productId, quantity);
+}
+
+module.exports = { addToCart, getCart, removeFromCart, updateCartQuantity }

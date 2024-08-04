@@ -2,7 +2,7 @@ const express = require("express");
 const hbs = require("hbs");
 const wax = require("wax-on");
 require("dotenv").config();
-const csurf = require('csurf');
+const csrf = require('csurf');
  
 if (!process.env.SESSION_SECRET) {
     console.error('SESSION_SECRET is not defined in the environment variables');
@@ -67,7 +67,7 @@ app.use(function(req,res, next){
     next();
 });
 //enable csurf
-app.use(csurf());
+app.use(csrf());
 
 app.use(function (req,res,next) {
     res.locals.csrfToken = req.csrfToken();

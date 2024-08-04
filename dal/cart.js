@@ -1,4 +1,3 @@
-const { get } = require('express/lib/response');
 const { CartItem } = require('../models');
 
 /**
@@ -95,4 +94,35 @@ async function updateQuantity(userId, productId, amount) {
         throw error;
     }
 }
-module.exports = { getCart, getCartItemByUserAndProduct, createCartItem, updateQuantity };
+
+async function removeFromCart(userId, productId) {
+    try {
+        const cartItem = await getCartItemByUserAndProduct(userId, productId);
+        if(cartItem) {
+            await cartItem.destroy();
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.error('Error updating cart:', error);
+        throw error;
+    }
+}
+
+async function updateCartQuantity(userId, productId, amount) {
+    try {
+        const cartItem = await getCartItemByUserAndProduct(userId, productId);
+        if (!cartItem) {
+            throw new Error('Cart item not found');
+        }
+        cartItem.set('quantity', amount);
+        await cartItem.save();
+        console.log('Cart item updated successfully');
+    } catch (error) {
+        console.error('Error updating cart item:', error);
+        throw error;
+    }
+}
+
+module.exports = { getCart, getCartItemByUserAndProduct, createCartItem, updateQuantity, removeFromCart, updateCartQuantity };
