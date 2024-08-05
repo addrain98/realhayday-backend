@@ -26,7 +26,7 @@ router.get('/:product_id/remove', async function (req,res) {
 
 router.post('/:product_id/updateCartQuantity', async function(req, res) {
     // Todo: Add validation here
-    const newQuantity = req.body.newQuantity;
+    const newQuantity = parseInt(req.body.newQuantity);
     if (newQuantity <= 0) {
         req.flash("error_messages", "The product does not exist in the cart.");
         return res.redirect("/cart");
