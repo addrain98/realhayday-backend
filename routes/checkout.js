@@ -83,7 +83,7 @@ router.post('/process_payment', express.raw({
             });
 
             // Log each line item's product metadata
-            for (let i of lineItems.price_data) {
+            for (let i of lineItems.data) {
                 console.log(i.price.product.metadata)
             }
 

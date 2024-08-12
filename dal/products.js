@@ -1,5 +1,9 @@
 const { Category, UOM, Product } = require("../models");
 
+async function getAllProducts() {
+    return await Product.fetchAll();
+}
+
 async function getAllCategories() {
     const allCategories = await Category.fetchAll()
         .map(category => [category.get('id'), category.get('name')]);
@@ -38,6 +42,7 @@ async function createProduct(productData) {
 }
 
 module.exports = {
+    getAllProducts,
     getAllUoms,
     getAllCategories,
     getProductById,

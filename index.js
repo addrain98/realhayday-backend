@@ -3,7 +3,9 @@ const hbs = require("hbs");
 const wax = require("wax-on");
 require("dotenv").config();
 const csurf = require('csurf');
- 
+const cors = require('cors')
+
+
 if (!process.env.SESSION_SECRET) {
     console.error('SESSION_SECRET is not defined in the environment variables');
     process.exit(1); // Exit the application if SESSION_SECRET is missing
@@ -22,6 +24,9 @@ app.set("view engine", "hbs");
 
 // Static folder
 app.use(express.static("public"));
+
+// enable cors
+app.use(cors())
 
 // Setup wax-on
 wax.on(hbs.handlebars);
@@ -69,7 +74,7 @@ app.use(function(req,res, next){
 //enable csurf and exclude for stripe checkout
 const csurfInstance = csurf()
 app.use(function(req,res,next){
-    if(req.url == "/checkout/process_payment") {
+    if(req.url == "/checkout/process_payment" || req.url.slice(0,5)=='/api/') {
         return next();
     }
     csurfInstance(req,res,next)
@@ -96,6 +101,10 @@ const userRoutes = require('./routes/users.js');
 const cloudinaryRoutes = require('./routes/cloudinary.js')
 const cartRoutes = require('./routes/shoppingCart.js')
 const checkoutRoutes = require('./routes/checkout.js')
+const api = {
+    products: require('./routes/api/products.js'),
+    users: require('./routes/api/users.js')
+}
 
 async function main() {
     app.use('/', landingRoutes);
@@ -105,6 +114,7 @@ async function main() {
     app.use('/cloudinary', cloudinaryRoutes);
     app.use('/cart', cartRoutes);
     app.use('/checkout', checkoutRoutes)
+    app.use('/api/products', express.json(), api.products)
 }
 
 main();
