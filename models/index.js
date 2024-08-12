@@ -7,7 +7,10 @@ const Product = bookshelf.model('Product', {
     },
     categories: function() {
         return this.belongsToMany('Category', 'products_categories', 'product_id', 'category_id');
-    }
+    },
+    cartItems:function() {
+        return this.hasMany('CartItem');
+      }
 });
 
 const Category = bookshelf.model('Category', {

@@ -2,7 +2,7 @@ const express = require("express");
 const hbs = require("hbs");
 const wax = require("wax-on");
 require("dotenv").config();
-const csrf = require('csurf');
+const csurf = require('csurf');
  
 if (!process.env.SESSION_SECRET) {
     console.error('SESSION_SECRET is not defined in the environment variables');
@@ -66,8 +66,14 @@ app.use(function(req,res, next){
     }
     next();
 });
-//enable csurf
-app.use(csrf());
+//enable csurf and exclude for stripe checkout
+const csurfInstance = csurf()
+app.use(function(req,res,next){
+    if(req.url == "/checkout/process_payment") {
+        return next();
+    }
+    csurfInstance(req,res,next)
+})
 
 app.use(function (req,res,next) {
     res.locals.csrfToken = req.csrfToken();
@@ -89,6 +95,7 @@ const uomRoutes = require('./routes/uoms.js');
 const userRoutes = require('./routes/users.js');
 const cloudinaryRoutes = require('./routes/cloudinary.js')
 const cartRoutes = require('./routes/shoppingCart.js')
+const checkoutRoutes = require('./routes/checkout.js')
 
 async function main() {
     app.use('/', landingRoutes);
@@ -97,6 +104,7 @@ async function main() {
     app.use('/users', userRoutes);
     app.use('/cloudinary', cloudinaryRoutes);
     app.use('/cart', cartRoutes);
+    app.use('/checkout', checkoutRoutes)
 }
 
 main();
